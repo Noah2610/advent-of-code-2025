@@ -14,14 +14,34 @@ async function main() {
     for (const line of input.split("\n")) {
         const delta = parseInstruction(line);
 
-        index = mod(index + delta, 100);
+        const start = index;
+        const end = mod(index + delta, 100);
+        index = end;
 
-        console.log(`${line} -> ${delta} -> ${index}`);
+        const loops = Math.floor(Math.abs(delta) / 100);
 
-        if (index === 0) {
-            console.log("^^^ POINTS AT ZERO");
+        const sign = Math.sign(delta);
+
+        if (
+            start !== 0 &&
+            (end === 0 ||
+                (sign > 0 && end < start) ||
+                (sign < 0 && end > start))
+        ) {
+            console.log("vvv passed 0");
             zeroCount++;
         }
+
+        zeroCount += loops;
+        if (loops > 0) {
+            console.log(`vvvv additional ${loops} loops`);
+        }
+
+        console.log(
+            `${line} -> ${start} ${Math.sign(delta) > 0 ? "+" : "-"} ${Math.abs(
+                delta,
+            )} -> ${end}\n  ${zeroCount} zeroes counted`,
+        );
     }
 
     console.log(`Dial pointed at 0 ${zeroCount} times`);
@@ -32,10 +52,10 @@ function mod(a, b) {
 }
 
 function parseInstruction(instr) {
-    const [dir, ...rest] = instr;
+    const [dir, ...rest] = instr.trim();
     const sign = dir === "R" ? 1 : -1;
-
-    return sign * Number.parseInt(rest.join(""));
+    const num = Number.parseInt(rest.join(""));
+    return sign * num;
 }
 
 async function getInput() {
