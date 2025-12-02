@@ -13,15 +13,43 @@ async function main() {
 
         for (let id = first; id <= last; id++) {
             const s = id.toString();
-            if (s.length % 2 !== 0) {
-                continue;
+            const mid = Math.floor(s.length / 2);
+
+            let isValid = true;
+
+            // console.log({ id, mid });
+
+            len: for (let len = mid; len > 0; len--) {
+                if (s.length % len !== 0) {
+                    continue;
+                }
+
+                const parts = s.length / len;
+                let lastPart = null;
+
+                // console.log({ len, parts });
+
+                for (let i = 0; i < parts; i++) {
+                    const offset = i * len;
+                    const part = s.slice(offset, offset + len);
+
+                    // console.log({ i, part, lastPart });
+
+                    if (lastPart === null) {
+                        lastPart = part;
+                    } else {
+                        if (lastPart !== part) {
+                            // parts differ, id with parts of this len is valid
+                            continue len;
+                        }
+                    }
+                }
+
+                isValid = false;
+                break;
             }
 
-            const mid = Math.floor(s.length / 2);
-            const firstHalf = s.slice(0, mid);
-            const secondHalf = s.slice(mid);
-
-            if (firstHalf === secondHalf) {
+            if (!isValid) {
                 console.log(`id ${id} is invalid`);
                 invalidIdsSum += id;
             }
