@@ -21,10 +21,10 @@ function maxJoltage(bankS: string) {
         .map((c) => Number.parseInt(c))
         .filter(Number.isFinite);
 
-    const totalDigits = 2;
+    const totalDigits = 12;
     const nums: Largest[] = [];
 
-    console.log({ bank });
+    // console.log({ bank });
 
     for (let _ = 0; _ < totalDigits; _++) {
         let largest: Largest | null = null;
@@ -38,7 +38,7 @@ function maxJoltage(bankS: string) {
             }
         }
 
-        console.log({ _, largest, startAt });
+        // console.log({ _, largest, startAt });
 
         if (largest) {
             nums.push(largest);
@@ -46,7 +46,7 @@ function maxJoltage(bankS: string) {
     }
 
     const numS = nums.map((l) => l.n).join("");
-    return numS ? dbg(Number.parseInt(numS)) : 0;
+    return numS ? Number.parseInt(numS) : 0;
 }
 
 main();
