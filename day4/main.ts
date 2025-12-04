@@ -1,36 +1,51 @@
-import { getInputLines } from "../lib/util.ts";
+import { dbg, getInputLines } from "../lib/util.ts";
 
 type Pos = { x: number; y: number };
+type Grid = string[][];
 
 async function main() {
     const rows = await getInputLines();
+    const grid = rows.map((row) => row.trim().split(""));
 
     const MAX_NEIGHBOR_ROLLS = 3;
 
-    const lookup = ({ x, y }: Pos): string | null => rows[y]?.[x] ?? null;
+    const lookup = ({ x, y }: Pos): string | null => grid[y]?.[x] ?? null;
+    const set = ({ x, y }: Pos, val: string) =>
+        Boolean(grid[y]?.[x]) ? (grid[y][x] = val) : null;
+    const remove = (pos: Pos) => set(pos, "_");
 
     let accessibleRolls = 0;
 
-    for (let y = 0; y < rows.length; y++) {
-        const row = rows[y];
+    let y = 0;
+    while (y < grid.length) {
+        let x = 0;
+        while (x < grid[y].length) {
+            if (lookup({ x, y }) === "@") {
+                const neighborCoords = getNeighborCoords({ x, y });
+                const neighborRolls = neighborCoords
+                    .map((pos) => ({ ...pos, v: lookup(pos) }))
+                    .filter(({ v }) => v === "@");
 
-        for (let x = 0; x < row.length; x++) {
-            const cell = row[x];
-            if (cell !== "@") continue;
+                if (neighborRolls.length <= MAX_NEIGHBOR_ROLLS) {
+                    accessibleRolls += 1;
+                    remove({ x, y });
 
-            const neighborCoords = getNeighborCoords({ x, y });
-            const neighborRolls = neighborCoords
-                .map(lookup)
-                .filter(Boolean)
-                .reduce(
-                    (count, neighbor) => (neighbor === "@" ? count + 1 : count),
-                    0,
-                );
-
-            if (neighborRolls <= MAX_NEIGHBOR_ROLLS) {
-                accessibleRolls += 1;
+                    const neighbor = neighborRolls[0];
+                    if (
+                        neighbor &&
+                        (neighbor.y < y || (neighbor.y === y && neighbor.x < x))
+                    ) {
+                        x = neighbor.x;
+                        y = neighbor.y;
+                        continue;
+                    }
+                }
             }
+
+            x++;
         }
+
+        y++;
     }
 
     console.log(`There are ${accessibleRolls} accessible rolls of paper`);
@@ -49,6 +64,14 @@ function getNeighborCoords(pos: Pos): Pos[] {
     }
 
     return neighborCoords;
+}
+
+function fmtGrid(grid: Grid): string {
+    return grid.map((row) => row.join("")).join("\n");
+}
+
+function displayGrid(grid: Grid) {
+    console.log(fmtGrid(grid));
 }
 
 main();
