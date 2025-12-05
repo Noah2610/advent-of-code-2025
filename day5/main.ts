@@ -15,12 +15,12 @@ async function main() {
     const pad = (n: number, l = 3) => n.toString().padStart(l, "0");
 
     for (let i = 0; i < lines.length; i++) {
-        console.log(
-            `[${pad(i)}/${pad(lines.length)}] ${(
-                (i / lines.length) *
-                100
-            ).toFixed(2)}%`,
-        );
+        // console.log(
+        //     `[${pad(i)}/${pad(lines.length)}] ${(
+        //         (i / lines.length) *
+        //         100
+        //     ).toFixed(2)}%`,
+        // );
 
         const line = lines[i].trim();
 
@@ -44,6 +44,15 @@ async function main() {
         }
     }
 
+    displayTotalFreshAndAvailable(freshIdRanges, availableIds);
+
+    displayTotalFresh(freshIdRanges);
+}
+
+function displayTotalFreshAndAvailable(
+    freshIdRanges: IdRanges,
+    availableIds: Ids,
+) {
     const hasFresh = (id: number): boolean => {
         for (const range of freshIdRanges) {
             if (id >= range[0] && id <= range[1]) {
@@ -63,6 +72,63 @@ async function main() {
 
     console.log(
         `A total of ${totalFreshAndAvailable} items are available and fresh`,
+    );
+}
+
+function displayTotalFresh(_ranges: IdRanges) {
+    const doRangesIntersect = ([a1, a2]: IdRange, [b1, b2]: IdRange): boolean =>
+        (a1 >= b1 && a1 < b2) || (b1 >= a1 && b1 < a2);
+
+    const normalizeRanges = (ranges: IdRanges, depth = 0): IdRanges => {
+        let anyIntersection = false;
+        const normalized: IdRanges = [];
+
+        for (let i = 0; i < ranges.length; i++) {
+            const range = ranges[i];
+            let insert = true;
+
+            for (let j = 0; j < normalized.length; j++) {
+                const norm = normalized[j];
+
+                if (doRangesIntersect(range, norm)) {
+                    anyIntersection = true;
+                    insert = false;
+                    normalized[j] = [
+                        Math.min(range[0], norm[0]),
+                        Math.max(range[1], norm[1]),
+                    ];
+                }
+            }
+
+            if (insert) {
+                normalized.push(range);
+                // } else {
+                //     anyIntersection = true;
+            }
+        }
+
+        return anyIntersection
+            ? normalizeRanges(normalized, depth + 1)
+            : normalized;
+    };
+
+    const ranges = normalizeRanges(_ranges);
+
+    // 343143696885066 -- too high
+
+    let total = 0;
+
+    for (const range of ranges) {
+        // for (let i = range[0]; i <= range[1]; i++) {
+        //     total++;
+        //     console.log(i);
+        // }
+
+        total += range[1] - range[0] + 1;
+    }
+
+    console.log(
+        `There are a total of ${total} fresh ingredients, regardless of availability`,
     );
 }
 
